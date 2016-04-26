@@ -1,5 +1,6 @@
 package com.example.yamgao.popularmovies;
 
+
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.net.Uri;
@@ -7,6 +8,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.preference.PreferenceManager;
+
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -33,7 +35,8 @@ import java.util.List;
  * Created by yamgao on 4/23/16.
  */
 public class MoviePosterFragment extends Fragment {
-    ImageAdapter mMovieAdapter;
+    private ImageAdapter mMovieAdapter;
+    private ArrayList<Movie> mMovieList;
 
     public MoviePosterFragment() {
     }
@@ -43,6 +46,16 @@ public class MoviePosterFragment extends Fragment {
         super.onStart();
         updateMovieList();
     }
+
+
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putParcelableArrayList("movies", mMovieList);
+
+    }
+
 
     public void updateMovieList() {
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getActivity());
@@ -54,11 +67,13 @@ public class MoviePosterFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
         GridView gridview = (GridView) rootView.findViewById(R.id.gridview_movie_poster);
-        mMovieAdapter = new ImageAdapter(getActivity(), R.layout.image_view_movie, new ArrayList(0));
+        mMovieAdapter = new ImageAdapter(getActivity(), R.layout.image_view_movie, mMovieList);
         gridview.setAdapter(mMovieAdapter);
+
         gridview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
@@ -69,6 +84,7 @@ public class MoviePosterFragment extends Fragment {
                 startActivity(detailIntent);
             }
         });
+
         return rootView;
     }
 
@@ -77,7 +93,14 @@ public class MoviePosterFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
+        if(savedInstanceState != null && savedInstanceState.containsKey("movies")) {
+            mMovieList = savedInstanceState.getParcelableArrayList("movies");
+        }
+        else {
+            mMovieList = new ArrayList<Movie>(0);
+        }
     }
+
 
     private class LoadMoviePosterTask extends AsyncTask<String, Void, Movie[]> {
         private final String LOG_TAG = LoadMoviePosterTask.class.getSimpleName();
@@ -108,6 +131,7 @@ public class MoviePosterFragment extends Fragment {
                 // Create the request to OpenWeatherMap, and open the connection
                 urlConnection = (HttpURLConnection) url.openConnection();
                 urlConnection.setRequestMethod("GET");
+                urlConnection.setRequestProperty( "Accept-Encoding", "" );
                 urlConnection.connect();
 
                 // Read the input stream into a String
