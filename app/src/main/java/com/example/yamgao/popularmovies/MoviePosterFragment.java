@@ -51,7 +51,6 @@ public class MoviePosterFragment extends Fragment implements LoaderManager.Loade
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getActivity());
         String sort_order = sharedPref.getString(getString(R.string.pref_sort_key), getString(R.string.pref_sort_default));
         new LoadMoviePosterTask().execute(sort_order);
-//        PopularMoviesSyncAdaptor.syncImmediately(getActivity());
     }
 
 
