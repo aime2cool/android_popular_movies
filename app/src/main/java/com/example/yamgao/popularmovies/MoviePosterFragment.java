@@ -2,12 +2,15 @@ package com.example.yamgao.popularmovies;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.Loader;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -32,7 +35,7 @@ import java.util.List;
 /**
  * Created by yamgao on 4/23/16.
  */
-public class MoviePosterFragment extends Fragment {
+public class MoviePosterFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
     ImageAdapter mMovieAdapter;
 
     public MoviePosterFragment() {
@@ -48,6 +51,7 @@ public class MoviePosterFragment extends Fragment {
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(getActivity());
         String sort_order = sharedPref.getString(getString(R.string.pref_sort_key), getString(R.string.pref_sort_default));
         new LoadMoviePosterTask().execute(sort_order);
+//        PopularMoviesSyncAdaptor.syncImmediately(getActivity());
     }
 
 
@@ -77,6 +81,21 @@ public class MoviePosterFragment extends Fragment {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
+    }
+
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        return null;
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+
     }
 
     private class LoadMoviePosterTask extends AsyncTask<String, Void, Movie[]> {

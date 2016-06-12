@@ -1,42 +1,58 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent">
-    <TextView
-        android:padding="20dp"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentTop="true"
-        android:id="@+id/movie_title"
-        android:background="@color/colorDetailTitleBack"
-        android:textColor="@color/colorDetailTtileText"/>
-    <ImageView
-        android:layout_margin="10dp"
-        android:layout_width="150dp"
-        android:layout_height="250dp"
-        android:scaleType="fitCenter"
-        android:id="@+id/movie_poster"
-        android:adjustViewBounds="true"
-        android:layout_below="@+id/movie_title"/>
-    <TextView
-        android:layout_margin="10dp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/movie_release_date"
-        android:layout_toRightOf="@+id/movie_poster"
-        android:layout_below="@+id/movie_title"/>
-    <TextView
-        android:layout_margin="10dp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/user_rating"
-        android:layout_below="@+id/movie_release_date"
-        android:layout_toRightOf="@+id/movie_poster"/>
-    <TextView
-        android:layout_margin="10dp"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/movie_overview"
-        android:layout_below="@+id/movie_poster" />
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/ScrollView01"
+    android:layout_width="fill_parent"
+    android:layout_height="fill_parent">
 
-</RelativeLayout>
+    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <TextView
+            android:id="@+id/movie_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:background="@color/colorDetailTitleBack"
+            android:padding="@dimen/detail_title_padding"
+            android:textColor="@color/colorDetailTtileText"
+            android:textSize="@dimen/detail_title_size" />
+
+        <ImageView
+            android:id="@+id/movie_poster"
+            android:layout_width="@dimen/detail_poster_width"
+            android:layout_height="@dimen/detail_poster_height"
+            android:layout_below="@+id/movie_title"
+            android:layout_margin="@dimen/detail_margin"
+            android:adjustViewBounds="true"
+            android:scaleType="fitCenter" />
+
+        <TextView
+            android:id="@+id/movie_release_date"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignTop="@+id/movie_poster"
+            android:layout_below="@+id/movie_title"
+            android:layout_margin="@dimen/detail_margin"
+            android:layout_toRightOf="@+id/movie_poster"
+            android:textSize="@dimen/detail_date_size" />
+
+        <TextView
+            android:id="@+id/user_rating"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/movie_release_date"
+            android:layout_margin="@dimen/detail_margin"
+            android:layout_toRightOf="@+id/movie_poster"
+            android:textSize="@dimen/detail_rating_size" />
+
+        <TextView
+            android:id="@+id/movie_overview"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/movie_poster"
+            android:layout_margin="@dimen/detail_margin"
+            android:textSize="@dimen/detail_overview_size" />
+
+    </RelativeLayout>
+</ScrollView>
