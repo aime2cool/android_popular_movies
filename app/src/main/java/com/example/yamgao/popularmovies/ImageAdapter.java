@@ -29,12 +29,6 @@ public class ImageAdapter extends ArrayAdapter {
         ImageView imageView;
         if (convertView == null) {
             imageView = (ImageView) LayoutInflater.from(mContext).inflate(R.layout.image_view_movie, parent, false);
-//            LayoutInflater vi = LayoutInflater.from(mContext);
-//            imageView = (ImageView) vi.inflate(mResource, parent);
-//            imageView = new ImageView(mContext);
-//            imageView.setLayoutParams(new GridView.LayoutParams(85, 85));
-//            imageView.setScaleType(ImageView.ScaleType.CENTER_CROP);
-//            imageView.setPadding(8, 8, 8, 8);
         }
         else {
             imageView = (ImageView) convertView;
