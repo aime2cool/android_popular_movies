@@ -2,7 +2,8 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/ScrollView01"
     android:layout_width="fill_parent"
-    android:layout_height="fill_parent">
+    android:layout_height="fill_parent"
+    android:fillViewport="true">
 
     <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
@@ -53,6 +54,35 @@
             android:layout_below="@+id/movie_poster"
             android:layout_margin="@dimen/detail_margin"
             android:textSize="@dimen/detail_overview_size" />
+
+        <TextView
+            android:id="@+id/trailer_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/movie_overview"
+            android:layout_margin="@dimen/detail_margin"
+            android:text="@string/title_trailers"
+            android:textAppearance="?android:textAppearanceLarge"/>
+        <ListView
+            android:id="@+id/list_view_trailer"
+            android:layout_below="@+id/trailer_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+        </ListView>
+        <TextView
+            android:id="@+id/review_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/list_view_trailer"
+            android:text="@string/title_reviews"
+            android:layout_margin="@dimen/detail_margin"
+            android:textAppearance="?android:textAppearanceLarge"/>
+        <ListView
+            android:id="@+id/list_view_review"
+            android:layout_below="@+id/review_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+        </ListView>
 
     </RelativeLayout>
 </ScrollView>
