@@ -12,5 +12,12 @@
         android:stretchMode="columnWidth"
         android:numColumns="2"
         android:gravity="center"/>
+    <GridView
+        android:id="@+id/gridview_favorite_poster"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:stretchMode="columnWidth"
+        android:numColumns="2"
+        android:gravity="center"/>
 
 </FrameLayout>

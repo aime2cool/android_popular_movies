@@ -9,12 +9,10 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Parcelable;
 import android.preference.PreferenceManager;
-
 import android.support.v4.app.Fragment;
 import android.support.v4.app.LoaderManager;
 import android.support.v4.content.CursorLoader;
 import android.support.v4.content.Loader;
-import android.support.v4.widget.CursorAdapter;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -125,11 +123,11 @@ public class MoviePosterFragment extends Fragment implements LoaderManager.Loade
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
         String sort_order = Utility.getPreferredOrder(getActivity());
-        if (sort_order.equals(FAVORITE_SETTING)) {
-            GridView gridview = (GridView) rootView.findViewById(R.id.gridview_movie_poster);
+//        if (sort_order.equals(FAVORITE_SETTING)) {
+            GridView favoritegridview = (GridView) rootView.findViewById(R.id.gridview_favorite_poster);
             mFavoriteAdapter = new FavoriteAdapter(getActivity(), null);
-            gridview.setAdapter(mFavoriteAdapter);
-            gridview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            favoritegridview.setAdapter(mFavoriteAdapter);
+            favoritegridview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
                 @Override
                 public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
@@ -149,8 +147,8 @@ public class MoviePosterFragment extends Fragment implements LoaderManager.Loade
                     mPosition = position;
                 }
             });
-        }
-        else {
+//        }
+//        else {
             GridView gridview = (GridView) rootView.findViewById(R.id.gridview_movie_poster);
             mMovieAdapter = new ImageAdapter(getActivity(), R.layout.image_view_movie, mMovieList);
             gridview.setAdapter(mMovieAdapter);
@@ -165,7 +163,7 @@ public class MoviePosterFragment extends Fragment implements LoaderManager.Loade
                     startActivity(detailIntent);
                 }
             });
-        }
+//        }
 
 
         return rootView;
@@ -189,7 +187,9 @@ public class MoviePosterFragment extends Fragment implements LoaderManager.Loade
         if (Utility.getPreferredOrder(getActivity()).equals(FAVORITE_SETTING)) {
             getLoaderManager().initLoader(FAVORITE_LOADER, null, this);
         }
-
+        else {
+            updateMovieList();
+        }
         super.onActivityCreated(savedInstanceState);
     }
     @Override
