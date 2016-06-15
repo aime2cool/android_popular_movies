@@ -20,4 +20,6 @@
     <string name="content_authority">com.example.yamgao.popularmovies</string>
     <string name="title_trailers">Trailers:</string>
     <string name="title_reviews">Reviews:</string>
+    <string name="addtofavorite">ADDED TO FAVORITE</string>
+    <string name="notinfavorite">MARK AS FAVORITE</string>
 </resources>

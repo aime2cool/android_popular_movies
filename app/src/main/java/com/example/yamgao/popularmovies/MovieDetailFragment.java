@@ -2,6 +2,7 @@ package com.example.yamgao.popularmovies;
 
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -12,11 +13,14 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.ListAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.ToggleButton;
 
+import com.example.yamgao.popularmovies.data.MovieContract;
 import com.squareup.picasso.Picasso;
 
 import org.json.JSONArray;
@@ -34,13 +38,15 @@ import java.util.Arrays;
 import java.util.List;
 
 /**
- * Created by zhucai on 6/12/16.
+ * Created by yamgao on 6/12/16.
  */
 public class MovieDetailFragment extends Fragment {
-    private long mMovieID;
+    private int mMovieID;
     private TrailerAdapter mTrailerAdapter;
     private ReviewAdapter mReviewAdapter;
     private ArrayList<Trailer> mTrailerList;
+    private ToggleButton mBtnFavorite;
+    private Movie movie;
     public MovieDetailFragment() {
     }
 
@@ -77,7 +83,7 @@ public class MovieDetailFragment extends Fragment {
         View rootView = inflater.inflate(R.layout.fragment_detail, container, false);
         Intent intent = getActivity().getIntent();
         if (intent != null && intent.hasExtra("MOVIE_DETAIL")) {
-            Movie movie = (Movie) intent.getParcelableExtra("MOVIE_DETAIL");
+            movie = (Movie) intent.getParcelableExtra("MOVIE_DETAIL");
             String title = movie.getOriginal_title();
             String date = movie.getRelease_date();
             String overview = movie.getOverview();
@@ -103,34 +109,19 @@ public class MovieDetailFragment extends Fragment {
             new LoadMovieTrailerTask().execute();
             new LoadMovieReviewTask().execute();
 
-//            ListView trailerView = (ListView) rootView.findViewById(R.id.list_view_trailer);
-//            mTrailerAdapter = new TrailerAdapter(getActivity(), R.layout.list_item_trailer, mTrailerList);
-//            trailerView.setAdapter(mTrailerAdapter);
-////            System.out.println("trailer list size is " + mTrailerList.size());
-//            setListViewHeightBasedOnChildren(trailerView);
-//            trailerView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-//                @Override
-//                public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-//                    Trailer trailer = (Trailer) mTrailerAdapter.getItem(i);
-//                    String id = trailer.getKey();
-//                    // call detailActivity
-//                    try {
-//                        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse("vnd.youtube:" + id));
-//                        startActivity(intent);
-//                    } catch (ActivityNotFoundException ex) {
-//                        Intent intent = new Intent(Intent.ACTION_VIEW,
-//                                Uri.parse("http://www.youtube.com/watch?v=" + id));
-//                        startActivity(intent);
+//            mBtnFavorite = (ToggleButton) rootView.findViewById(R.id.favorite_button);
+//            mBtnFavorite.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+//                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+//                    if (isChecked) {
+//                        // The toggle is enabled
+//                        new AddToMovieDBTask(getActivity()).execute(movie);
+//                    } else {
+//                        // The toggle is disabled
+//                        new RemoveFromMovieDBTask(getActivity()).execute(movie.getId());
 //                    }
 //                }
 //            });
-
-
-//            ListView reviewView = (ListView) rootView.findViewById(R.id.list_view_review);
-//            mReviewAdapter = new ReviewAdapter(getActivity(), R.layout.list_item_review, new ArrayList<Review>(0));
-//            reviewView.setAdapter(mReviewAdapter);
-//            setListViewHeightBasedOnChildren(reviewView);
-
+            new QueryFavoriteTask().execute();
         }
         return rootView;
     }
@@ -138,14 +129,13 @@ public class MovieDetailFragment extends Fragment {
     public static void setListViewHeightBasedOnChildren(ListView listView) {
         ListAdapter listAdapter = listView.getAdapter();
         if (listAdapter == null) {
-//            System.out.println("listadapter is null !!!");
             // pre-condition
             return;
         }
-//        System.out.println("listadapter is not null !!!");
+
         int totalHeight = 0;
         int desiredWidth = View.MeasureSpec.makeMeasureSpec(listView.getWidth(), View.MeasureSpec.AT_MOST);
-//        int desiredHeight = View.MeasureSpec.makeMeasureSpec(listView.getHeight(), View.MeasureSpec.AT_MOST);
+
         for (int i = 0; i < listAdapter.getCount(); i++) {
             View listItem = listAdapter.getView(i, null, listView);
             listItem.measure(desiredWidth, View.MeasureSpec.UNSPECIFIED);
@@ -459,5 +449,49 @@ public class MovieDetailFragment extends Fragment {
 
     }
 
+
+    private class QueryFavoriteTask extends AsyncTask<Void, Void, Cursor>{
+
+        @Override
+        protected Cursor doInBackground(Void... params) {
+            String[] projection = {MovieContract.MovieEntry.COLUMN_ID};
+            String selection = MovieContract.MovieEntry.COLUMN_ID + " = ?";
+            // Specify arguments in placeholder order.
+            String[] selectionArgs = { String.valueOf(mMovieID) };
+            Cursor cursor = getActivity().getContentResolver().query(
+                    MovieContract.MovieEntry.CONTENT_URI,
+                    projection,
+                    selection,
+                    selectionArgs,
+                    null);
+            return cursor;
+        }
+
+        @Override
+        protected void onPostExecute(Cursor cursor) {
+            mBtnFavorite = (ToggleButton) getView().findViewById(R.id.favorite_button);
+
+            if (cursor != null) {
+                if (cursor.moveToFirst()) {
+                    mBtnFavorite.setChecked(true);
+                }
+                else {
+                    mBtnFavorite.setChecked(false);
+                }
+            }
+
+            mBtnFavorite.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    if (isChecked) {
+                        // The toggle is enabled
+                        new AddToMovieDBTask(getActivity()).execute(movie);
+                    } else {
+                        // The toggle is disabled
+                        new RemoveFromMovieDBTask(getActivity()).execute(mMovieID);
+                    }
+                }
+            });
+        }
+    }
 }
 

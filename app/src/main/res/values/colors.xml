@@ -5,4 +5,6 @@
     <color name="colorAccent">#FF4081</color>
     <color name="colorDetailTitleBack">#009688</color>
     <color name="colorDetailTtileText">#FFFFFF</color>
+    <color name="light_blue">#ff64c2f4</color>
+    <color name="red">#F44336</color>
 </resources>

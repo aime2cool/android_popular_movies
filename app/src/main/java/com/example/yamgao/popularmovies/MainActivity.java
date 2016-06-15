@@ -1,13 +1,15 @@
 package com.example.yamgao.popularmovies;
 
 import android.content.Intent;
+import android.net.Uri;
+import android.os.Parcelable;
 import android.support.v7.app.ActionBarActivity;
 //import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 
-public class MainActivity extends ActionBarActivity {
+public class MainActivity extends ActionBarActivity implements MoviePosterFragment.Callback{
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,4 +46,10 @@ public class MainActivity extends ActionBarActivity {
     }
 
 
+    @Override
+    public void onItemSelected(Movie movie) {
+        Intent intent = new Intent(this, DetailActivity.class);
+        intent.putExtra("MOVIE_DETAIL", (Parcelable)movie);
+        startActivity(intent);
+    }
 }
