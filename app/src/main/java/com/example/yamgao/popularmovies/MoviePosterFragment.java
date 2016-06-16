@@ -42,11 +42,12 @@ import java.util.List;
 
 public class MoviePosterFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
     private int mPosition = GridView.INVALID_POSITION;
-    private FavoriteAdapter mFavoriteAdapter;
+//    private FavoriteAdapter mFavoriteAdapter;
     private ImageAdapter mMovieAdapter;
     private ArrayList<Movie> mMovieList;
     private static final int FAVORITE_LOADER = 0;
     private static final String FAVORITE_SETTING = "favorites";
+    private GridView mGridView;
     private static final String[] MOVIE_COLUMNS = {
             // In this case the id needs to be fully qualified with a table name, since
             // the content provider joins the location & weather tables in the background
@@ -122,48 +123,21 @@ public class MoviePosterFragment extends Fragment implements LoaderManager.Loade
         // Inflate the layout for this fragment
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
-        String sort_order = Utility.getPreferredOrder(getActivity());
-//        if (sort_order.equals(FAVORITE_SETTING)) {
-            GridView favoritegridview = (GridView) rootView.findViewById(R.id.gridview_favorite_poster);
-            mFavoriteAdapter = new FavoriteAdapter(getActivity(), null);
-            favoritegridview.setAdapter(mFavoriteAdapter);
-            favoritegridview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        mGridView = (GridView) rootView.findViewById(R.id.gridview_movie_poster);
+        mMovieAdapter = new ImageAdapter(getActivity(), R.layout.image_view_movie, mMovieList);
+        mGridView.setAdapter(mMovieAdapter);
 
-                @Override
-                public void onItemClick(AdapterView<?> adapterView, View view, int position, long l) {
-                    // CursorAdapter returns a cursor at the correct position for getItem(), or null
-                    // if it cannot seek to that position.
-                    Cursor cursor = (Cursor) adapterView.getItemAtPosition(position);
-                    int id = cursor.getInt(1);
-                    String original_title = cursor.getString(2);
-                    String overview = cursor.getString(3);
-                    String poster_path = cursor.getString(4);
-                    String release_date = cursor.getString(5);
-                    double vote_average = cursor.getDouble(6);
-                    Movie movie = new Movie(id, poster_path, overview, release_date, original_title, vote_average);
-                    if (cursor != null) {
-                        ((Callback) getActivity()).onItemSelected(movie);
-                    }
-                    mPosition = position;
-                }
-            });
-//        }
-//        else {
-            GridView gridview = (GridView) rootView.findViewById(R.id.gridview_movie_poster);
-            mMovieAdapter = new ImageAdapter(getActivity(), R.layout.image_view_movie, mMovieList);
-            gridview.setAdapter(mMovieAdapter);
+        mGridView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                Movie movie = (Movie) mMovieAdapter.getItem(i);
+                // call detailActivity
+                Intent detailIntent = new Intent(getActivity(), DetailActivity.class);
+                detailIntent.putExtra("MOVIE_DETAIL", (Parcelable)movie);
+                startActivity(detailIntent);
+            }
+        });
 
-            gridview.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                @Override
-                public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                    Movie movie = (Movie) mMovieAdapter.getItem(i);
-                    // call detailActivity
-                    Intent detailIntent = new Intent(getActivity(), DetailActivity.class);
-                    detailIntent.putExtra("MOVIE_DETAIL", (Parcelable)movie);
-                    startActivity(detailIntent);
-                }
-            });
-//        }
 
 
         return rootView;
@@ -205,9 +179,25 @@ public class MoviePosterFragment extends Fragment implements LoaderManager.Loade
     }
 
     @Override
-    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+    public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
 
-        mFavoriteAdapter.swapCursor(data);
+        if (cursor.moveToFirst()){
+            mMovieAdapter.clear();
+            do{
+                int id = cursor.getInt(1);
+                String original_title = cursor.getString(2);
+                String overview = cursor.getString(3);
+                String poster_path = cursor.getString(4);
+                String release_date = cursor.getString(5);
+                double vote_average = cursor.getDouble(6);
+                Movie movie = new Movie(id, poster_path, overview, release_date, original_title, vote_average);
+                mMovieList.add(movie);
+                System.out.println("find favorite movie: " + original_title);
+            }while(cursor.moveToNext());
+            mMovieAdapter.addAll(mMovieList);
+        }
+//        cursor.close();
+
 
 
 //        if (mPosition != GridView.INVALID_POSITION) {
@@ -218,9 +208,7 @@ public class MoviePosterFragment extends Fragment implements LoaderManager.Loade
     }
 
     @Override
-    public void onLoaderReset(Loader<Cursor> loader) {
-        mFavoriteAdapter.swapCursor(null);
-    }
+    public void onLoaderReset(Loader<Cursor> loader) {}
 
 
     private class LoadMoviePosterTask extends AsyncTask<String, Void, Movie[]> {
@@ -309,12 +297,11 @@ public class MoviePosterFragment extends Fragment implements LoaderManager.Loade
             if (result != null) {
                 if (mMovieAdapter != null) {
                     mMovieAdapter.clear();
-                    List<Movie> movieList = new ArrayList<Movie>(Arrays.asList(result));
-                    mMovieAdapter.addAll(movieList);
-                }
-                else {
+                    mMovieList = new ArrayList<Movie>(Arrays.asList(result));
+                    mMovieAdapter.addAll(mMovieList);
 
                 }
+
             }
         }
 
