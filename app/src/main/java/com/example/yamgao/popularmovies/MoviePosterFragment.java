@@ -10,9 +10,6 @@ import android.os.Bundle;
 import android.os.Parcelable;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.LoaderManager;
-import android.support.v4.content.CursorLoader;
-import android.support.v4.content.Loader;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -40,12 +37,10 @@ import java.util.List;
  * Created by yamgao on 4/23/16.
  */
 
-public class MoviePosterFragment extends Fragment implements LoaderManager.LoaderCallbacks<Cursor> {
+public class MoviePosterFragment extends Fragment {
     private int mPosition = GridView.INVALID_POSITION;
-//    private FavoriteAdapter mFavoriteAdapter;
     private ImageAdapter mMovieAdapter;
     private ArrayList<Movie> mMovieList;
-    private static final int FAVORITE_LOADER = 0;
     private static final String FAVORITE_SETTING = "favorites";
     private GridView mGridView;
     private static final String[] MOVIE_COLUMNS = {
@@ -80,13 +75,17 @@ public class MoviePosterFragment extends Fragment implements LoaderManager.Loade
     @Override
     public void onStart() {
         super.onStart();
+        System.out.println("********** in onStart");
         if (Utility.getPreferredOrder(getActivity()).equals(FAVORITE_SETTING)) {
-            getLoaderManager().initLoader(FAVORITE_LOADER, null, this);
+            System.out.println("******initLoader");
+//            getLoaderManager().restartLoader(FAVORITE_LOADER, null, this);
+            new LoadFavoriteTask().execute();
+            System.out.println("end of initLoader******");
         }
         else {
             updateMovieList();
         }
-
+        System.out.println("end of onStart ***********");
     }
 
 
@@ -148,67 +147,29 @@ public class MoviePosterFragment extends Fragment implements LoaderManager.Loade
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
+        System.out.println("************** in onCreate");
         if(savedInstanceState != null && savedInstanceState.containsKey("movies")) {
             mMovieList = savedInstanceState.getParcelableArrayList("movies");
         }
         else {
             mMovieList = new ArrayList<Movie>(0);
         }
+        System.out.println("end of onCreate ***********");
     }
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        System.out.println("*************** in onActivityCreated");
         if (Utility.getPreferredOrder(getActivity()).equals(FAVORITE_SETTING)) {
-            getLoaderManager().initLoader(FAVORITE_LOADER, null, this);
+//            getLoaderManager().initLoader(FAVORITE_LOADER, null, this);
+            new LoadFavoriteTask().execute();
         }
         else {
             updateMovieList();
         }
-        super.onActivityCreated(savedInstanceState);
+        System.out.println("end of onActivityCreated ************");
     }
-    @Override
-    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
-        return new CursorLoader(
-                getActivity(),
-                MovieContract.MovieEntry.CONTENT_URI,
-                MOVIE_COLUMNS,
-                null,
-                null,
-                null
-        );
-    }
-
-    @Override
-    public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
-
-        if (cursor.moveToFirst()){
-            mMovieAdapter.clear();
-            do{
-                int id = cursor.getInt(1);
-                String original_title = cursor.getString(2);
-                String overview = cursor.getString(3);
-                String poster_path = cursor.getString(4);
-                String release_date = cursor.getString(5);
-                double vote_average = cursor.getDouble(6);
-                Movie movie = new Movie(id, poster_path, overview, release_date, original_title, vote_average);
-                mMovieList.add(movie);
-                System.out.println("find favorite movie: " + original_title);
-            }while(cursor.moveToNext());
-            mMovieAdapter.addAll(mMovieList);
-        }
-//        cursor.close();
-
-
-
-//        if (mPosition != GridView.INVALID_POSITION) {
-//            // If we don't need to restart the loader, and there's a desired position to restore
-//            // to, do so now.
-//            mListView.smoothScrollToPosition(mPosition);
-//        }
-    }
-
-    @Override
-    public void onLoaderReset(Loader<Cursor> loader) {}
 
 
     private class LoadMoviePosterTask extends AsyncTask<String, Void, Movie[]> {
@@ -339,4 +300,53 @@ public class MoviePosterFragment extends Fragment implements LoaderManager.Loade
         }
     }
 
+    private class LoadFavoriteTask extends AsyncTask<Void, Void, List<Movie>>{
+
+        @Override
+        protected List<Movie> doInBackground(Void... params) {
+//            String[] projection = {MovieContract.MovieEntry.COLUMN_ID};
+//            String selection = MovieContract.MovieEntry.COLUMN_ID + " = ?";
+            // Specify arguments in placeholder order.
+//            String[] selectionArgs = { String.valueOf(mMovieID) };
+            Cursor cursor = getActivity().getContentResolver().query(
+                    MovieContract.MovieEntry.CONTENT_URI,
+                    null,
+                    null,
+                    null,
+                    null);
+
+            List<Movie> movieList = new ArrayList<Movie>();
+            if (cursor.moveToFirst()){
+
+                do{
+                    int id = cursor.getInt(1);
+                    String original_title = cursor.getString(2);
+                    String overview = cursor.getString(3);
+                    String poster_path = cursor.getString(4);
+                    String release_date = cursor.getString(5);
+                    double vote_average = cursor.getDouble(6);
+                    Movie movie = new Movie(id, poster_path, overview, release_date, original_title, vote_average);
+                    movieList.add(movie);
+                    System.out.println("find favorite movie: " + original_title);
+                }while(cursor.moveToNext());
+
+            }
+
+            return movieList;
+        }
+
+        @Override
+        protected void onPostExecute(List<Movie> movies) {
+            if (movies != null) {
+                if (mMovieAdapter != null) {
+                    mMovieAdapter.clear();
+                    mMovieList = new ArrayList<Movie>(movies);
+                    mMovieAdapter.addAll(mMovieList);
+
+                }
+
+            }
+        }
+
+    }
 }

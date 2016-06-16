@@ -93,7 +93,7 @@ public class MovieDetailFragment extends Fragment {
             ((TextView)rootView.findViewById(R.id.movie_overview)).setText(overview);
             ((TextView)rootView.findViewById(R.id.movie_release_date)).setText(date);
             ((TextView)rootView.findViewById(R.id.user_rating)).setText(rating + "/10");
-
+            new QueryFavoriteTask().execute();
             ImageView imageView = (ImageView)rootView.findViewById(R.id.movie_poster);
             String poster_path = movie.getPoster_path();
             final String BASE_URL = "http://image.tmdb.org/t/p/";
@@ -121,7 +121,7 @@ public class MovieDetailFragment extends Fragment {
 //                    }
 //                }
 //            });
-            new QueryFavoriteTask().execute();
+
         }
         return rootView;
     }

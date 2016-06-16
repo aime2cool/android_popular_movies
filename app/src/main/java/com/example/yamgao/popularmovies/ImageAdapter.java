@@ -2,6 +2,7 @@ package com.example.yamgao.popularmovies;
 
 import android.content.Context;
 import android.net.Uri;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,6 +17,7 @@ import java.util.List;
  * Created by yamgao on 4/23/16.
  */
 public class ImageAdapter extends ArrayAdapter {
+    private final String LOG_TAG = ImageAdapter.class.getSimpleName();
     private Context mContext;
     private List<Movie> mList;
     private int mResource;
@@ -46,7 +48,7 @@ public class ImageAdapter extends ArrayAdapter {
                 .appendPath(IMG_SIZE)
                 .appendPath(POSTER_PATH.replace("/",""))
                 .build();
-        System.out.println(builtUri.toString());
+        Log.d(LOG_TAG, "load image to grid view: "+builtUri.toString());
         Picasso.with(mContext).load(builtUri.toString()).into(imageView);
     }
 }
