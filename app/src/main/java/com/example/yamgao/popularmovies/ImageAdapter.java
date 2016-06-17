@@ -48,7 +48,7 @@ public class ImageAdapter extends ArrayAdapter {
                 .appendPath(IMG_SIZE)
                 .appendPath(POSTER_PATH.replace("/",""))
                 .build();
-        Log.d(LOG_TAG, "load image to grid view: "+builtUri.toString());
+        Log.d(LOG_TAG, ""+builtUri.toString());
         Picasso.with(mContext).load(builtUri.toString()).into(imageView);
     }
 }

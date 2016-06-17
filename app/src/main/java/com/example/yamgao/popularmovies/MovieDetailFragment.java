@@ -12,7 +12,6 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.ListAdapter;
@@ -46,7 +45,12 @@ public class MovieDetailFragment extends Fragment {
     private ReviewAdapter mReviewAdapter;
     private ArrayList<Trailer> mTrailerList;
     private ToggleButton mBtnFavorite;
-    private Movie movie;
+    private Movie mMovie;
+    static final String MOVIE_DETAIL = "movie_detail";
+    static final String TRAILER_TITILE = "Trailers:";
+    static final String REVIEW_TITLE = "Reviews:";
+    static final String TOGGLE_ON = "ADDED TO FAVORITES";
+    static final String TOGGLE_OFF = "MARK AS FAVORITE";
     public MovieDetailFragment() {
     }
 
@@ -79,23 +83,29 @@ public class MovieDetailFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-
+        Bundle arguments = getArguments();
+        if (arguments != null) {
+            mMovie = arguments.getParcelable(MovieDetailFragment.MOVIE_DETAIL);
+        }
         View rootView = inflater.inflate(R.layout.fragment_detail, container, false);
-        Intent intent = getActivity().getIntent();
-        if (intent != null && intent.hasExtra("MOVIE_DETAIL")) {
-            movie = (Movie) intent.getParcelableExtra("MOVIE_DETAIL");
-            String title = movie.getOriginal_title();
-            String date = movie.getRelease_date();
-            String overview = movie.getOverview();
-            mMovieID = movie.getId();
-            double rating = movie.getVote_average();
+//        Intent intent = getActivity().getIntent();
+        if (mMovie != null) {
+//            mMovie = (Movie) intent.getParcelableExtra("MOVIE_DETAIL");
+            mMovieID = mMovie.getId();
+            new QueryFavoriteTask().execute();
+            String title = mMovie.getOriginal_title();
+            String date = mMovie.getRelease_date();
+            String overview = mMovie.getOverview();
+
+            double rating = mMovie.getVote_average();
             ((TextView)rootView.findViewById(R.id.movie_title)).setText(title);
             ((TextView)rootView.findViewById(R.id.movie_overview)).setText(overview);
             ((TextView)rootView.findViewById(R.id.movie_release_date)).setText(date);
             ((TextView)rootView.findViewById(R.id.user_rating)).setText(rating + "/10");
-            new QueryFavoriteTask().execute();
+            ((TextView)rootView.findViewById(R.id.trailer_title)).setText(TRAILER_TITILE);
+            ((TextView)rootView.findViewById(R.id.review_title)).setText(REVIEW_TITLE);
             ImageView imageView = (ImageView)rootView.findViewById(R.id.movie_poster);
-            String poster_path = movie.getPoster_path();
+            String poster_path = mMovie.getPoster_path();
             final String BASE_URL = "http://image.tmdb.org/t/p/";
             final String IMG_SIZE = "w185";
 
@@ -109,18 +119,6 @@ public class MovieDetailFragment extends Fragment {
             new LoadMovieTrailerTask().execute();
             new LoadMovieReviewTask().execute();
 
-//            mBtnFavorite = (ToggleButton) rootView.findViewById(R.id.favorite_button);
-//            mBtnFavorite.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-//                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-//                    if (isChecked) {
-//                        // The toggle is enabled
-//                        new AddToMovieDBTask(getActivity()).execute(movie);
-//                    } else {
-//                        // The toggle is disabled
-//                        new RemoveFromMovieDBTask(getActivity()).execute(movie.getId());
-//                    }
-//                }
-//            });
 
         }
         return rootView;
@@ -151,38 +149,45 @@ public class MovieDetailFragment extends Fragment {
         listView.requestLayout();
     }
 
-    public static boolean setListViewHeightBasedOnItems(ListView listView) {
+//    public void onSortOrderChanged() {
+//        Movie movie = mMovie;
+//        if (null != movie) {
+//
+//        }
+//    }
 
-        ArrayAdapter listAdapter = (ArrayAdapter) listView.getAdapter();
-        if (listAdapter != null) {
-
-            int numberOfItems = listAdapter.getCount();
-
-            // Get total height of all items.
-            int totalItemsHeight = 0;
-            for (int itemPos = 0; itemPos < numberOfItems; itemPos++) {
-                View item = listAdapter.getView(itemPos, null, listView);
-                item.measure(0, 0);
-                totalItemsHeight += item.getMeasuredHeight();
-            }
-
-            // Get total height of all item dividers.
-            int totalDividersHeight = listView.getDividerHeight() *
-                    (numberOfItems - 1);
-
-            // Set list height.
-            ViewGroup.LayoutParams params = listView.getLayoutParams();
-            params.height = totalItemsHeight + totalDividersHeight;
-            listView.setLayoutParams(params);
-            listView.requestLayout();
-
-            return true;
-
-        } else {
-            return false;
-        }
-
-    }
+//    public static boolean setListViewHeightBasedOnItems(ListView listView) {
+//
+//        ArrayAdapter listAdapter = (ArrayAdapter) listView.getAdapter();
+//        if (listAdapter != null) {
+//
+//            int numberOfItems = listAdapter.getCount();
+//
+//            // Get total height of all items.
+//            int totalItemsHeight = 0;
+//            for (int itemPos = 0; itemPos < numberOfItems; itemPos++) {
+//                View item = listAdapter.getView(itemPos, null, listView);
+//                item.measure(0, 0);
+//                totalItemsHeight += item.getMeasuredHeight();
+//            }
+//
+//            // Get total height of all item dividers.
+//            int totalDividersHeight = listView.getDividerHeight() *
+//                    (numberOfItems - 1);
+//
+//            // Set list height.
+//            ViewGroup.LayoutParams params = listView.getLayoutParams();
+//            params.height = totalItemsHeight + totalDividersHeight;
+//            listView.setLayoutParams(params);
+//            listView.requestLayout();
+//
+//            return true;
+//
+//        } else {
+//            return false;
+//        }
+//
+//    }
 
     private class LoadMovieTrailerTask extends AsyncTask<Void, Void, Trailer[]> {
         private final String LOG_TAG = LoadMovieTrailerTask.class.getSimpleName();
@@ -470,13 +475,18 @@ public class MovieDetailFragment extends Fragment {
         @Override
         protected void onPostExecute(Cursor cursor) {
             mBtnFavorite = (ToggleButton) getView().findViewById(R.id.favorite_button);
-
+            mBtnFavorite.setVisibility(View.VISIBLE);
+            mBtnFavorite.setTextOn(TOGGLE_ON);
+            mBtnFavorite.setTextOff(TOGGLE_OFF);
+            mBtnFavorite.setBackgroundDrawable(getResources().getDrawable(R.drawable.favorite));
             if (cursor != null) {
                 if (cursor.moveToFirst()) {
                     mBtnFavorite.setChecked(true);
+
                 }
                 else {
                     mBtnFavorite.setChecked(false);
+//
                 }
             }
 
@@ -484,7 +494,7 @@ public class MovieDetailFragment extends Fragment {
                 public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                     if (isChecked) {
                         // The toggle is enabled
-                        new AddToMovieDBTask(getActivity()).execute(movie);
+                        new AddToMovieDBTask(getActivity()).execute(mMovie);
                     } else {
                         // The toggle is disabled
                         new RemoveFromMovieDBTask(getActivity()).execute(mMovieID);

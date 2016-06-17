@@ -1,13 +1,11 @@
 package com.example.yamgao.popularmovies;
 
 
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Parcelable;
 import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -38,11 +36,13 @@ import java.util.List;
  */
 
 public class MoviePosterFragment extends Fragment {
-    private int mPosition = GridView.INVALID_POSITION;
+    private final String LOG_TAG = MoviePosterFragment.class.getSimpleName();
+    private int mPosition;
     private ImageAdapter mMovieAdapter;
     private ArrayList<Movie> mMovieList;
     private static final String FAVORITE_SETTING = "favorites";
     private GridView mGridView;
+    private static final String SELECTED_KEY = "selected_position";
     private static final String[] MOVIE_COLUMNS = {
             // In this case the id needs to be fully qualified with a table name, since
             // the content provider joins the location & weather tables in the background
@@ -74,19 +74,23 @@ public class MoviePosterFragment extends Fragment {
 
     @Override
     public void onStart() {
+        Log.d(LOG_TAG, "@@@@@@@@@ onstart");
         super.onStart();
-        System.out.println("********** in onStart");
+        onSortOrderChanged();
+        Log.d(LOG_TAG, "@@@@@@@@@ end onstart");
+    }
+
+    public void onSortOrderChanged() {
         if (Utility.getPreferredOrder(getActivity()).equals(FAVORITE_SETTING)) {
-            System.out.println("******initLoader");
+
 //            getLoaderManager().restartLoader(FAVORITE_LOADER, null, this);
             new LoadFavoriteTask().execute();
-            System.out.println("end of initLoader******");
         }
         else {
             updateMovieList();
         }
-        System.out.println("end of onStart ***********");
     }
+
 
 
 
@@ -94,7 +98,10 @@ public class MoviePosterFragment extends Fragment {
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putParcelableArrayList("movies", mMovieList);
-
+        if (mPosition != GridView.INVALID_POSITION) {
+            outState.putInt(SELECTED_KEY, mPosition);
+            Log.d(LOG_TAG, "******save mPosition " + mPosition);
+        }
     }
 
 
@@ -123,6 +130,7 @@ public class MoviePosterFragment extends Fragment {
         View rootView = inflater.inflate(R.layout.fragment_main, container, false);
 
         mGridView = (GridView) rootView.findViewById(R.id.gridview_movie_poster);
+        mGridView.setChoiceMode(GridView.CHOICE_MODE_SINGLE);
         mMovieAdapter = new ImageAdapter(getActivity(), R.layout.image_view_movie, mMovieList);
         mGridView.setAdapter(mMovieAdapter);
 
@@ -130,13 +138,25 @@ public class MoviePosterFragment extends Fragment {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
                 Movie movie = (Movie) mMovieAdapter.getItem(i);
-                // call detailActivity
-                Intent detailIntent = new Intent(getActivity(), DetailActivity.class);
-                detailIntent.putExtra("MOVIE_DETAIL", (Parcelable)movie);
-                startActivity(detailIntent);
-            }
-        });
+//                view.setPadding(0,5,0,5);
 
+                // call detailActivity
+//                Intent detailIntent = new Intent(getActivity(), DetailActivity.class);
+//                detailIntent.putExtra("MOVIE_DETAIL", (Parcelable)movie);
+//                startActivity(detailIntent);
+                ((Callback) getActivity()).onItemSelected(movie);
+                mPosition = i;
+                Log.d(LOG_TAG, "click on mPosition " + i);
+
+            }
+
+        });
+        if (savedInstanceState != null && savedInstanceState.containsKey(SELECTED_KEY)) {
+            // The listview probably hasn't even been populated yet.  Actually perform the
+            // swapout in onLoadFinished.
+            mPosition = savedInstanceState.getInt(SELECTED_KEY);
+            Log.d(LOG_TAG, "******* find mPosition in bundle " + mPosition);
+        }
 
 
         return rootView;
@@ -145,30 +165,41 @@ public class MoviePosterFragment extends Fragment {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        Log.d(LOG_TAG, "@@@@@@@@@ onCreate");
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
-        System.out.println("************** in onCreate");
+
         if(savedInstanceState != null && savedInstanceState.containsKey("movies")) {
             mMovieList = savedInstanceState.getParcelableArrayList("movies");
         }
         else {
             mMovieList = new ArrayList<Movie>(0);
         }
-        System.out.println("end of onCreate ***********");
+        if (savedInstanceState != null && savedInstanceState.containsKey(SELECTED_KEY)) {
+            // The listview probably hasn't even been populated yet.  Actually perform the
+            // swapout in onLoadFinished.
+            mPosition = savedInstanceState.getInt(SELECTED_KEY);
+            Log.d(LOG_TAG, "on create******* find mPosition in bundle " + mPosition);
+        }
+        Log.d(LOG_TAG, "@@@@@@@@@ end onCreate");
     }
 
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
+        Log.d(LOG_TAG, "@@@@@@@@@ onActivityCreated");
         super.onActivityCreated(savedInstanceState);
-        System.out.println("*************** in onActivityCreated");
-        if (Utility.getPreferredOrder(getActivity()).equals(FAVORITE_SETTING)) {
-//            getLoaderManager().initLoader(FAVORITE_LOADER, null, this);
-            new LoadFavoriteTask().execute();
+        onSortOrderChanged();
+        if (savedInstanceState != null && !savedInstanceState.containsKey(SELECTED_KEY)) {
+            Log.d(LOG_TAG, "*************** NOT CONTAIN");
         }
-        else {
-            updateMovieList();
+        if (savedInstanceState != null && savedInstanceState.containsKey(SELECTED_KEY)) {
+            // The listview probably hasn't even been populated yet.  Actually perform the
+            // swapout in onLoadFinished.
+            mPosition = savedInstanceState.getInt(SELECTED_KEY);
+            Log.d(LOG_TAG, "on create******* find mPosition in bundle " + mPosition);
         }
-        System.out.println("end of onActivityCreated ************");
+        Log.d(LOG_TAG, "@@@@@@@@@ onActivityCreated");
+
     }
 
 
@@ -255,12 +286,23 @@ public class MoviePosterFragment extends Fragment {
 
         @Override
         protected void onPostExecute(Movie[] result) {
+            Log.d(LOG_TAG, "Before clear ******mPosition is " + mPosition);
+
             if (result != null) {
                 if (mMovieAdapter != null) {
+                    mMovieAdapter.setNotifyOnChange(false);
                     mMovieAdapter.clear();
                     mMovieList = new ArrayList<Movie>(Arrays.asList(result));
                     mMovieAdapter.addAll(mMovieList);
+                    mMovieAdapter.notifyDataSetChanged();
+                    Log.d(LOG_TAG, "******mPosition is " + mPosition);
 
+                    if (mPosition != GridView.INVALID_POSITION) {
+                        // If we don't need to restart the loader, and there's a desired position to restore
+                        // to, do so now.
+                        mGridView.smoothScrollToPosition(mPosition);
+                        Log.d(LOG_TAG, "scroll to " + mPosition);
+                    }
                 }
 
             }
@@ -304,10 +346,7 @@ public class MoviePosterFragment extends Fragment {
 
         @Override
         protected List<Movie> doInBackground(Void... params) {
-//            String[] projection = {MovieContract.MovieEntry.COLUMN_ID};
-//            String selection = MovieContract.MovieEntry.COLUMN_ID + " = ?";
-            // Specify arguments in placeholder order.
-//            String[] selectionArgs = { String.valueOf(mMovieID) };
+
             Cursor cursor = getActivity().getContentResolver().query(
                     MovieContract.MovieEntry.CONTENT_URI,
                     null,
@@ -337,12 +376,21 @@ public class MoviePosterFragment extends Fragment {
 
         @Override
         protected void onPostExecute(List<Movie> movies) {
+            Log.d(LOG_TAG, "Before clear ******mPosition is " + mPosition);
             if (movies != null) {
                 if (mMovieAdapter != null) {
+
                     mMovieAdapter.clear();
                     mMovieList = new ArrayList<Movie>(movies);
                     mMovieAdapter.addAll(mMovieList);
 
+                    Log.d(LOG_TAG, "******mPosition is " + mPosition);
+                    if (mPosition != GridView.INVALID_POSITION) {
+                        // If we don't need to restart the loader, and there's a desired position to restore
+                        // to, do so now.
+                        mGridView.smoothScrollToPosition(mPosition);
+                        Log.d(LOG_TAG, "scroll to " + mPosition);
+                    }
                 }
 
             }
